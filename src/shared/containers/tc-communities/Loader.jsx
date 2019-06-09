@@ -82,6 +82,12 @@ class Loader extends React.Component {
     if (!meta.authorizedGroupIds) return Community({ member, meta });
 
     /* Visitor is not authenticated. */
+    const viewportId = _.isEmpty(_.pick(meta, 'accessDeniedPage.viewportId'))
+      ? null : meta.accessDeniedPage.viewportId;
+    const spaceName = _.isEmpty(_.pick(meta, 'accessDeniedPage.spaceName'))
+      ? null : meta.accessDeniedPage.spaceName;
+    const environment = _.isEmpty(_.pick(meta, 'accessDeniedPage.environment'))
+      ? null : meta.accessDeniedPage.environment;
     if (!visitorGroups) {
       /* TODO: In case of TopGear (Wipro) community, if user is not
        * authenticated he is automatically redirected to SSO auth URL,
@@ -99,6 +105,9 @@ class Loader extends React.Component {
         <AccessDenied
           cause={ACCESS_DENIED_REASON.NOT_AUTHENTICATED}
           communityId={communityId}
+          viewportId={viewportId}
+          spaceName={spaceName}
+          environment={environment}
         />
       );
     }
@@ -116,7 +125,14 @@ class Loader extends React.Component {
     }
 
     /* Visitor is not authorized to access this community. */
-    return <AccessDenied cause={ACCESS_DENIED_REASON.NOT_AUTHORIZED} />;
+    return (
+      <AccessDenied
+        cause={ACCESS_DENIED_REASON.NOT_AUTHORIZED}
+        viewportId={viewportId}
+        spaceName={spaceName}
+        environment={environment}
+      />
+    );
   }
 }
 

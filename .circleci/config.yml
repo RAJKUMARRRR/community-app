@@ -174,22 +174,20 @@ workflows:
           filters:
             branches:
               only: 
-                - develop
+                - hot-fixes
       # This is alternate dev env for parallel testing
       - "build-test":
           context : org-global      
           filters:
-              branches:
+            branches:
                 only:
-                  - develop_masterscript
-                  - legacy-tco
+                - hot-fixes
       # This is beta env for production soft releases
       - "build-prod-beta":
           context : org-global
           filters:
             branches:
               only:
-                - hot-fixes
                 - develop
       # Production builds are exectuted only on tagged commits to the
       # master branch.

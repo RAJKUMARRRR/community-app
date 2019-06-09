@@ -1,7 +1,7 @@
 /**
  * Email Preferences component.
  */
-import { map, debounce } from 'lodash';
+import { map, debounce, isEqual } from 'lodash';
 import React from 'react';
 import PT from 'prop-types';
 
@@ -17,17 +17,17 @@ const newsletters = [
   //   desc: 'News summary from all tracks and programs',
   // },
   {
-    id: 'TOPCODER_NL_DESIGN',
+    id: 'Design Newsletter',
     name: 'Design Newsletter',
     desc: 'Website, mobile and product design; UI and UX',
   },
   {
-    id: 'TOPCODER_NL_DEV',
+    id: 'Dev Newsletter',
     name: 'Development Newsletter',
     desc: 'Software architecture, component assembly, application development, and bug hunting',
   },
   {
-    id: 'TOPCODER_NL_DATA',
+    id: 'Data Science Newsletter',
     name: 'Data Science Newsletter',
     desc: 'Algorithm and data structures, statistical analysis',
   },
@@ -75,7 +75,6 @@ export default class EmailPreferences extends ConsentComponent {
     super(props);
     this.state = {
       emailPreferences: {},
-      populated: null,
     };
     this.onHandleChange = this.onHandleChange.bind(this);
     this.onChange = this.onChange.bind(this);
@@ -89,7 +88,17 @@ export default class EmailPreferences extends ConsentComponent {
 
   componentWillReceiveProps(nextProps) {
     const { profileState: { emailPreferences } } = nextProps;
-    if (emailPreferences) this.populate(emailPreferences);
+    if (emailPreferences && !isEqual(this.state.emailPreferences, emailPreferences)) {
+      this.populate(emailPreferences);
+    }
+  }
+
+  shouldComponentUpdate(nextProps) {
+    const { profileState: { emailPreferences } } = nextProps;
+    if (emailPreferences && this.props.profileState.emailPreferences !== emailPreferences) {
+      return true;
+    }
+    return false;
   }
 
   onHandleChange(id, checked) {
@@ -97,24 +106,25 @@ export default class EmailPreferences extends ConsentComponent {
   }
 
   onChange(id, checked) {
-    const { emailPreferences } = this.state;
-    emailPreferences[id] = checked;
+    document.querySelectorAll(`#pre-onoffswitch-${id}`).forEach((el) => { el.checked = checked; }); // eslint-disable-line no-param-reassign
+    let { emailPreferences } = this.state;
+    emailPreferences = {
+      ...emailPreferences,
+      [id]: checked,
+    };
     this.setState({
       emailPreferences,
     }, () => this.saveEmailPreferences());
   }
 
   populate(data) {
-    const { populated } = this.state;
-    if (populated) return;
     this.setState({
       emailPreferences: { ...data },
-      populated: true,
     });
   }
 
   render() {
-    const { emailPreferences } = this.state;
+    const { profileState: { emailPreferences } } = this.props;
     return (
       <div styleName="EmailPreferences">
         <h1 styleName="title">
@@ -129,7 +139,7 @@ export default class EmailPreferences extends ConsentComponent {
           }
           {
             map(newsletters, (newsletter) => {
-              const checked = emailPreferences[newsletter.id] || false;
+              const checked = emailPreferences ? emailPreferences[newsletter.id] : false;
               return (
                 <ToggleableItem
                   key={newsletter.id}
